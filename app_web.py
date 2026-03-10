@@ -1,42 +1,50 @@
-﻿import streamlit as st
+import streamlit as st
+from fpdf import FPDF
 import calculos_lib
-import os
 
-# Configuração da página
-st.set_page_config(page_title="Arte Preco Pro", page_icon="💰")
+# Configuração que define o nome do App na aba e o ícone
+st.set_page_config(
+    page_title="Arte Preco Pro", 
+    page_icon="logo.ico", 
+    layout="centered"
+)
 
-# Exibir a logo se ela existir na pasta
-if os.path.exists("logo.ico"):
-    st.image("logo.ico", width=200)
-elif os.path.exists("logo.png"):
-    st.image("logo.png", width=200)
-
-st.title("Arte Preco Pro")
+st.title("🎨 Arte Preco Pro")
 st.subheader("Sistema de Precificação")
 
-# Entradas de dados
-empresa_nome = st.text_input("Nome da Empresa")
-empresa_tel = st.text_input("Telefone / WhatsApp")
-
-st.divider()
-
+# Campos de Entrada
+empresa = st.text_input("Nome da empresa")
 produto = st.text_input("Nome do Produto")
-material = st.number_input("Custo do Material (R$)", min_value=0.0, format="%.2f")
-horas = st.number_input("Horas Trabalhadas", min_value=0.0, format="%.2f")
-valor_hora = st.number_input("Valor da Hora (R$)", min_value=0.0, format="%.2f")
-despesas = st.number_input("Despesas Extras (R$)", min_value=0.0, format="%.2f")
-margem = st.number_input("Margem de Lucro (%)", min_value=0.0, format="%.2f")
-validade = st.number_input("Validade (dias)", min_value=1, value=7, step=1)
-obs = st.text_area("Observações para o PDF")
+custo_mat = st.number_input("Custo do Material (R$)", min_value=0.0, format="%.2f")
+horas = st.number_input("Horas trabalhadas", min_value=0.0)
+valor_hora = st.number_input("Valor da hora (R$)", min_value=0.0, format="%.2f")
+despesas = st.number_input("Despesas iniciais (R$)", min_value=0.0, format="%.2f")
+margem = st.number_input("Margem de Lucro (%)", min_value=0.0)
 
-# Botão de cálculo
-if st.button("Calcular e Gerar Resultado"):
-    if not produto:
-        st.warning("Por favor, informe o nome do produto.")
-    else:
-        custo_mao_obra = horas * valor_hora
-        custo_total = material + custo_mao_obra + despesas
-        preco_final = custo_total + (custo_total * margem / 100.0)
-        
-        st.success(f"Preço Final Sugerido: R$ {preco_final:,.2f}")
-        st.info("Cálculo realizado com sucesso!")
+# Lógica do Botão
+if st.button("Calcular e Gerar Orçamento"):
+    custo_t, preco_f = calculos_lib.calcular_preco(custo_mat, horas, valor_hora, despesas, margem)
+    
+    st.success(f"Custo Total: R$ {custo_t:.2f}")
+    st.info(f"Preço Sugerido de Venda: R$ {preco_f:.2f}")
+
+    # Gerar PDF em memória
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt="ORCAMENTO - ARTE PRECO PRO", ln=True, align='C')
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt=f"Empresa: {empresa}", ln=True)
+    pdf.cell(200, 10, txt=f"Produto: {produto}", ln=True)
+    pdf.cell(200, 10, txt=f"Custo Total: R$ {custo_t:.2f}", ln=True)
+    pdf.cell(200, 10, txt=f"Preco Final Sugerido: R$ {preco_f:.2f}", ln=True)
+    
+    # Criar o arquivo para download
+    pdf_bytes = pdf.output(dest='S').encode('latin-1')
+
+    st.download_button(
+        label="📥 Baixar Orçamento em PDF",
+        data=pdf_bytes,
+        file_name="orcamento.pdf",
+        mime="application/pdf"
+    )
