@@ -2,14 +2,14 @@ import streamlit as st
 from fpdf import FPDF
 import calculos_lib
 
-# Configuração que define o nome do App na aba e o ícone
+# Configuração da página
 st.set_page_config(
-    page_title="Arte Preco Pro", 
+    page_title="Arte Preço Pro", 
     page_icon="logo.ico", 
     layout="centered"
 )
 
-st.title("🎨 Arte Preco Pro")
+st.title("🎨 Arte Preço Pro")
 st.subheader("Sistema de Precificação")
 
 # Campos de Entrada
@@ -34,12 +34,13 @@ if st.button("Calcular e Gerar Orçamento"):
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(200, 10, txt="ORCAMENTO - ARTE PRECO PRO", ln=True, align='C')
     pdf.set_font("Arial", size=12)
+    pdf.ln(10)
     pdf.cell(200, 10, txt=f"Empresa: {empresa}", ln=True)
     pdf.cell(200, 10, txt=f"Produto: {produto}", ln=True)
     pdf.cell(200, 10, txt=f"Custo Total: R$ {custo_t:.2f}", ln=True)
     pdf.cell(200, 10, txt=f"Preco Final Sugerido: R$ {preco_f:.2f}", ln=True)
     
-    # Criar o arquivo para download
+    # Criar o ficheiro para download
     pdf_bytes = pdf.output(dest='S').encode('latin-1')
 
     st.download_button(
